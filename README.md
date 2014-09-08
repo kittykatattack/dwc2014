@@ -10,7 +10,7 @@ git submodule init
 git submodule update
 ```
 
-This will install the (Ga)[https://github.com/kittykatattack/ga] micro game engine that some of the examples depend on.
+This will install the [Ga](https://github.com/kittykatattack/ga) micro game engine that some of the examples depend on.
 
 Next, start a webserver in the root directory. I recommend [http-server for node](https://github.com/nodeapps/http-server).
 
