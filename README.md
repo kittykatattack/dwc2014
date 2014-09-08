@@ -1,7 +1,7 @@
 dwc2014
 =======
 
-This repository containes the slides and example files for Dev Workshop Conference 2014.
+This repository contains the slides and example files for Dev Workshop Conference 2014.
 
 After cloning this repository, `cd` to the root directory and run these these commands:
 
