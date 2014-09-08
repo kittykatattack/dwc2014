@@ -1,0 +1,161 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Canvas playground</title>
+<body>
+<script>
+
+/* Create the canvas */
+var canvas = document.createElement("canvas");
+canvas.setAttribute("width", "512");
+canvas.setAttribute("height", "512");
+canvas.style.border = "1px dashed black";
+document.body.appendChild(canvas);
+var ctx = canvas.getContext("2d");
+
+/* Draw a line */
+
+//1. Set the line style options
+ctx.strokeStyle = "black";
+ctx.lineWidth = 3;
+
+//2. Draw the line
+ctx.beginPath();
+ctx.moveTo(192, 64);
+ctx.lineTo(320, 192);
+ctx.closePath();
+ctx.stroke();
+
+/* Draw a shape */
+
+//Set the line and fill style options
+ctx.strokeStyle = "black";
+ctx.lineWidth = 3;
+ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
+
+//Connect lines together to form a
+//triangle in the center of the canvas
+ctx.beginPath();
+ctx.moveTo(128, 85);
+ctx.lineTo(170, 170);
+ctx.lineTo(85, 170);
+ctx.lineTo(128, 85);
+ctx.closePath();
+ctx.fill();
+ctx.stroke();
+
+/* Draw a rectangle */
+
+//Set the line and fill style options
+ctx.strokeStyle = "black";
+ctx.lineWidth = 3;
+ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
+
+//Draw the rectangle
+ctx.beginPath();
+ctx.rect(64, 220, 140, 90);
+ctx.closePath();
+ctx.stroke();
+ctx.fill();
+
+/* Draw a circle */
+
+//Set the line and fill style options
+ctx.strokeStyle = "black";
+ctx.lineWidth = 3;
+ctx.fillStyle = "gray";
+
+//Draw the circle
+ctx.beginPath();
+ctx.arc(400, 128, 48, 0, 2*Math.PI, false);
+ctx.closePath();
+ctx.stroke();
+ctx.fill();
+
+/* Use rotation */
+
+//Set the line and fill style options
+ctx.strokeStyle = "black";
+ctx.lineWidth = 3;
+ctx.fillStyle = "rgba(128, 128, 128, 0.5)";
+
+//Save the current state of the drawing context before it's rotated
+ctx.save();
+
+//Shift the drawing context's 0,0 point from the canvas's top left
+//corner to the center of the canvas. This will be the
+//square's center point
+ctx.translate(360, 300);
+
+//Rotate the drawing context's coordinate system 0.5 radians
+ctx.rotate(0.5);
+
+//Draw the square from -64 x and -64 y. That will mean its center
+//point will be at exactly 0, which is also the center of the
+//context's coordinate system
+ctx.beginPath();
+ctx.rect(-46, -46, 92, 92);
+ctx.closePath();
+ctx.stroke();
+ctx.fill();
+
+//Restore the drawing context to
+//its original position and rotation
+ctx.restore();
+
+/* Display an image */
+
+//Load an image
+var catImage = new Image();
+catImage.addEventListener("load", catLoadHandler, false);
+catImage.src = "images/cat.png";
+
+//The loadHandler is called when the image has loaded
+function catLoadHandler() {
+  ctx.drawImage(catImage, 64, 360);
+}
+
+/* Blit an image */
+//Load the tileset image
+var tileset = new Image();
+tileset.addEventListener("load", tilesetLoadHandler, false);
+tileset.src = "images/tileset.png";
+
+//The loadHandler is called when the image has loaded
+function tilesetLoadHandler() {
+    console.log("loaded")
+  ctx.drawImage(
+    tileset,     //The image file
+    192, 128,    //The source x and y position
+    64, 64,      //The source height and width
+    320, 390,    //The destination x and y position
+    92, 92       //The destination height and width
+  );
+}
+
+/* Add text */
+
+//Create a text string defines the content you want to display
+var content = "Hello World!";
+
+//Assign the font to the canvas context
+ctx.font = "24px 'Rockwell Extra Bold', 'Futura', sans-serif";
+
+//Set the font color to red
+ctx.fillStyle = "red";
+
+//Optionaly figure out the width and height of the text
+var width = ctx.measureText(content).width,
+    height = ctx.measureText("M").width;
+
+//Set the text's x/y registration point to its top left corner
+ctx.textBaseline = "top";
+
+//Use `fillText` to Draw the text in the center of the canvas
+ctx.fillText(
+  content,                         //The text string
+  canvas.width / 2 - width / 2,    //The x position
+  16                               //The y position
+);
+
+</script>
+</body>

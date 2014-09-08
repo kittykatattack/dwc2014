@@ -1,0 +1,375 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Collision detection</title>
+<body>
+<script>
+
+//Make the canvas
+var canvas = document.createElement("canvas");
+canvas.setAttribute("width", "512");
+canvas.setAttribute("height", "512");
+canvas.style.border = "1px dashed black";
+document.body.appendChild(canvas);
+var ctx = canvas.getContext("2d");
+
+//An array to store all the game sprites
+var sprites = [];
+
+//Arrow key codes
+var UP = 38,
+    DOWN = 40,
+    RIGHT = 39,
+    LEFT = 37;
+
+//Directions
+var moveUp = false,
+    moveDown = false,
+    moveRight = false,
+    moveLeft = false;
+
+//Add keyboard listeners
+window.addEventListener("keydown", function(event) {
+  switch(event.keyCode) {
+    case UP:
+	  moveUp = true;
+	  break;
+
+	case DOWN:
+	  moveDown = true;
+	  break;
+
+    case LEFT:
+	  moveLeft = true;
+	  break;
+
+    case RIGHT:
+	  moveRight = true;
+	  break;
+  }
+}, false);
+
+window.addEventListener("keyup", function(event) {
+  switch(event.keyCode) {
+    case UP:
+	  moveUp = false;
+	  break;
+
+	case DOWN:
+	  moveDown = false;
+	  break;
+
+	case LEFT:
+	  moveLeft = false;
+	  break;
+
+	case RIGHT:
+	  moveRight = false;
+	  break;
+  }
+}, false);
+
+//make a red box
+var redBox = rectangle(64, 64, "red");
+redBox.x = canvas.width / 2 - redBox.width / 2;
+redBox.y = canvas.height / 2 - redBox.height / 2;
+
+//Make a blueBox sprite and position it
+var blueBox = rectangle(64, 64, "blue");
+blueBox.x = 68;
+blueBox.y = canvas.height / 2 - blueBox.height / 2;
+
+//Add some text
+var message = text("No collision", "36px Futura", "red", 20, 20);
+
+//Start the game loop
+gameLoop();
+
+function gameLoop() {
+  requestAnimationFrame(gameLoop, canvas);
+  //Update the game logic
+  update();
+  //Render the sprites
+  render();
+}
+
+//The game logic
+function update() {
+  //Up
+  if(moveUp && !moveDown) {
+    blueBox.vy = -5;
+  }
+  //Down
+  if(moveDown && !moveUp) {
+    blueBox.vy = 5;
+  }
+  //Left
+  if(moveLeft && !moveRight) {
+    blueBox.vx = -5;
+  }
+  //Right
+  if(moveRight && !moveLeft) {
+    blueBox.vx = 5;
+  }
+
+  //Set the blueBox's velocity to zero if none of the keys are being pressed
+  if(!moveUp && !moveDown) {
+    blueBox.vy = 0;
+  }
+  if(!moveLeft && !moveRight) {
+    blueBox.vx = 0;
+  }
+
+  //Move the blueBox
+  blueBox.x += blueBox.vx;
+  blueBox.y += blueBox.vy;
+
+
+  //Screen boundaries
+  //Left
+  if (blueBox.x < 0) {
+    //Position the blueBox inside the canvas
+    blueBox.x = 0;
+  }
+  //Right
+  if (blueBox.x + blueBox.width > canvas.width) {
+    blueBox.x = canvas.width - blueBox.width;
+  }
+  //Top
+  if (blueBox.y < 0) {
+    blueBox.y = 0;
+  }
+  //Bottom
+  if (blueBox.y + blueBox.width > canvas.height) {
+    blueBox.y = canvas.height - blueBox.width;
+  }
+
+  //Test for a collision
+  if(hitTestRectangle(blueBox, redBox)) {
+    message.content = "hit!"
+    blueBox.fillStyle = "yellowGreen";
+  } else {
+    message.content = "No collision...";
+    blueBox.fillStyle = "blue";
+  }
+}
+
+//This will return true if there's a collision on both the x and y axis
+function hitTestRectangle(r1, r2) {
+  //Find the half-width values and center x/y points of two rectangles
+  r1.halfWidth = r1.width / 2;
+  r1.halfHeight = r1.height / 2;
+  r1.centerX = r1.x + r1.halfWidth;
+  r1.centerY = r1.y + r1.halfHeight;
+
+  r2.halfWidth = r2.width / 2;
+  r2.halfHeight = r2.height / 2;
+  r2.centerX = r2.x + r2.halfWidth;
+  r2.centerY = r2.y + r2.halfHeight;
+
+  //A variable to determine whether there's a collision
+  var hit = false;
+
+  //Calculate the distance vector
+  var vx = r1.centerX - r2.centerX;
+  var vy = r1.centerY - r2.centerY;
+
+  //Figure out the combined half-widths and half-heights
+  var combinedHalfWidths = r1.halfWidth + r2.halfWidth;
+  var combinedHalfHeights = r1.halfHeight + r2.halfHeight;
+
+  //Check for a collision on the x axis
+  if(Math.abs(vx) < combinedHalfWidths) {
+    //A collision might be occuring. Check for a collision on the y axis
+    if(Math.abs(vy) < combinedHalfHeights) {
+      //There's definitely a collision happening
+      hit = true;
+    }
+    else {
+      //There's no collision on the y axis
+      hit = false;
+    }
+  }
+  else {
+    //There's no collision on the x axis
+    hit = false;
+  }
+
+  return hit;
+}
+
+//The renderer
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sprites.forEach(function(sprite){
+    if (sprite.visible) {
+      ctx.save();
+      //Shift the canvas to the sprite's position
+      ctx.translate(
+        sprite.x + sprite.width / 2,
+        sprite.y + sprite.height /2
+      );
+      //Set the sprite's `rotation` and `alpha`
+      ctx.rotate(sprite.rotation);
+      ctx.globalAlpha = sprite.alpha;
+      //Use the sprite's own `render` method to draw the sprite
+      sprite.render(ctx);
+      ctx.restore();
+    }
+  });
+}
+
+/*
+The `keyboard` function creates `key` objects
+that listen for keyboard events. This is a much more flexible system
+than the bare-bones style of using keyboard event above.
+Create a new key object like this:
+
+ var keyObject = g.keyboard(asciiKeyCodeNumber);
+
+Then assign `press` and `release` methods like this:
+
+keyObject.press = function() {
+  //key object pressed
+};
+keyObject.release = function() {
+  //key object released
+};
+
+Keyboard objects also have `isDown` and `isUp` Booleans that you can check.
+*/
+
+function keyboard(keyCode) {
+  var key = {};
+  key.code = keyCode;
+  key.isDown = false;
+  key.isUp = true;
+  key.press = undefined;
+  key.release = undefined;
+
+  //The `downHandler`
+  key.downHandler = function(event) {
+    if (event.keyCode === key.code) {
+      if (key.isUp && key.press) key.press();
+      key.isDown = true;
+      key.isUp = false;
+    }
+    event.preventDefault();
+  };
+
+  //The `upHandler`
+  key.upHandler = function(event) {
+    if (event.keyCode === key.code) {
+      if (key.isDown && key.release) key.release();
+      key.isDown = false;
+      key.isUp = true;
+    }
+    event.preventDefault();
+  };
+
+  //Attach event listeners
+  window.addEventListener(
+    "keydown", key.downHandler.bind(key), false
+  );
+  window.addEventListener(
+    "keyup", key.upHandler.bind(key), false
+  );
+  return key;
+}
+
+//`text` creates and returns a single line of dynamic text.
+//arguments: stringContent, font, fontColor, xPosition, yPosition.
+function text(content, font, fillStyle, x, y) {
+  var o = {};
+
+  //Set the defaults.
+  o.x = x || 0;
+  o.y = y || 0;
+  o.content = content || "Hello!";
+  o.font = font || "12px sans-serif";
+  o.fillStyle = fillStyle || "red";
+  o.textBaseline = "top";
+  o.visible = true;
+
+  //Measure the width and height of the text
+  Object.defineProperties(o, {
+    width: {
+      get: function() {
+        return ctx.measureText(o.content).width;
+      },
+      enumerable: true, configurable: true
+    },
+    height: {
+      get: function() {
+        return ctx.measureText("M").width;
+      },
+      enumerable: true, configurable: true
+    }
+  });
+  //Add a `render` method that explains to the canvas how to draw text.
+  o.render = function(ctx) {
+    ctx.translate(-o.width / 2, -o.height / 2);
+    ctx.font = o.font;
+    ctx.fillStyle = o.fillStyle;
+    ctx.textBaseline = o.textBaseline;
+    ctx.fillText(
+      o.content,
+      0,
+      0
+    );
+  };
+  sprites.push(o);
+  //Return the text sprite.
+  return o;
+}
+
+//A function that returns a rectangle sprite
+function rectangle(width, height, fillStyle, strokeStyle, lineWidth) {
+
+  //Create an object
+  var o = {};
+
+  //Assign properties to the object that refer to canvas properties
+  o.x = 0;
+  o.y = 0;
+  o.width = width;
+  o.height = height;
+  o.fillStyle = fillStyle;
+  o.strokeStyle = strokeStyle;
+  o.lineWidth = lineWidth;
+
+  //Optional rotation, alpha and visible properties
+  o.rotation = 0;
+  o.alpha = 1;
+  o.visible = true;
+
+  //Add `vx` and `vy` (velocity) variables that will help us move the sprite
+  o.vx = 0;
+  o.vy = 0;
+
+  //Add a `render` method that explains how to draw the sprite
+  o.render = function(ctx) {
+    //Render the sprite
+    ctx.strokeStyle = o.strokeStyle;
+    ctx.lineWidth = o.lineWidth;
+    ctx.fillStyle = o.fillStyle;
+    ctx.beginPath();
+    ctx.rect(-o.width / 2, -o.height / 2, o.width, o.height);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+  };
+
+  //Push the sprite object into the `sprites` array
+  sprites.push(o);
+
+  //Return the object
+  return o;
+};
+
+//A `random` helper function
+function random(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+</script>
+</body>

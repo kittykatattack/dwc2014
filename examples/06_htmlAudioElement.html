@@ -1,0 +1,24 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Using the html5 Audio element</title>
+
+<script>
+
+var sound = new Audio();
+sound.addEventListener("canplaythrough", playSoundHandler, false);
+sound.src = "sounds/shoot.wav";
+
+function playSoundHandler(event) {
+  console.log("Sound loaded");
+}
+
+//Add a keyboard listeners
+window.addEventListener("keydown", function(event) {
+  if(event.keyCode === 32) {
+    //Play the sound
+    sound.currentTime = 0;
+    sound.play();
+  }
+}, false);
+
+</script>

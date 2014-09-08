@@ -1,0 +1,173 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Sprites</title>
+<body>
+<script>
+
+//Make the canvas
+var canvas = document.createElement("canvas");
+canvas.setAttribute("width", "512");
+canvas.setAttribute("height", "512");
+canvas.style.border = "1px dashed black";
+document.body.appendChild(canvas);
+var ctx = canvas.getContext("2d");
+
+//An array to store all the game sprites
+var sprites = [];
+
+//A function that returns a rectangle sprite
+var rectangle = function(width, height, fillStyle, strokeStyle, lineWidth) {
+
+  //Create an object
+  var o = {};
+
+  //Assign properties to the object that refer to canvas properties
+  o.x = 0;
+  o.y = 0;
+  o.width = width;
+  o.height = height;
+  o.fillStyle = fillStyle;
+  o.strokeStyle = strokeStyle;
+  o.lineWidth = lineWidth;
+
+  //Optional rotation and alpha
+  o.rotation = 0;
+  o.alpha = 1;
+
+  //Add `vx` and `vy` (velocity) variables that will help us move the sprite
+  o.vx = 0;
+  o.vy = 0;
+
+  //Add a `render` method that explains how to draw the sprite
+  o.render = function(ctx) {
+    //Render the sprite
+    ctx.strokeStyle = o.strokeStyle;
+    ctx.lineWidth = o.lineWidth;
+    ctx.fillStyle = o.fillStyle;
+    ctx.beginPath();
+    ctx.rect(-o.width / 2, -o.height / 2, o.width, o.height);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.fill();
+  };
+
+  //Push the sprite object into the `sprites` array
+  sprites.push(o);
+
+  //Return the object
+  return o;
+};
+
+/* Make 3 static rectangles */
+
+var boxOne = rectangle(128, 128, "#FFDAAB", "black", 2);
+boxOne.x = 64;
+boxOne.y = 64;
+boxOne.vx = 1;
+boxOne.vy = -1;
+
+var boxTwo = rectangle(128, 128, "#DDFFAB", "black", 2);
+boxTwo.x = 300;
+boxTwo.y = 200;
+boxTwo.vx = -1;
+boxTwo.vy = 1;
+
+var boxThree = rectangle(128, 128, "#D9ABFF", "black", 2);
+boxThree.x = 64;
+boxThree.y = 300;
+boxThree.vx = -1;
+boxThree.vy = -1;
+
+//render();
+
+
+/* Make 100 moving rectangles */
+
+/*
+//An array for the random colors
+var colors = ["#FFABAB", "#FFDAAB", "#DDFFAB", "#ABE4FF", "#D9ABFF"];
+
+//A loop that makes some rectangles
+var box, i;
+for (i = 0; i < 100; i++) {
+  //Create a `rectangle` sprite
+  box = rectangle(32, 32, colors[random(0, 4)], "black", 1);
+  //Give it a random color
+  box.x = random(0, canvas.width - box.width);
+  box.y = random(0, canvas.width - box.height);
+  //Give it a random velocity
+  box.vx = random(-1, 1);
+  box.vy = random(-1, 1);
+}
+
+*/
+
+//Start the game loop
+gameLoop();
+
+function gameLoop() {
+  requestAnimationFrame(gameLoop, canvas);
+  //Update the game logic
+  update();
+  //Render the sprites
+  render();
+}
+
+//The game logic
+function update() {
+  sprites.forEach(function(sprite){
+    sprite.x += sprite.vx;
+    sprite.y += sprite.vy;
+
+    //Screen boundaries
+    //Left
+    if (sprite.x < 0) {
+      //Position the sprite inside the canvas
+      sprite.x = 0;
+      //Reverse its velocity to make it bounce
+      sprite.vx = -sprite.vx;
+    }
+    //Right
+    if (sprite.x + sprite.width > canvas.width) {
+      sprite.x = canvas.width - sprite.width;
+      sprite.vx = -sprite.vx;
+    }
+    //Top
+    if (sprite.y < 0) {
+      sprite.y = 0;
+      sprite.vy = -sprite.vy;
+    }
+    //Bottom
+    if (sprite.y + sprite.width > canvas.height) {
+      sprite.y = canvas.height - sprite.width;
+      sprite.vy = -sprite.vy;
+    }
+  });
+}
+
+//The renderer
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sprites.forEach(function(sprite){
+    ctx.save();
+    //Shift the canvas to the sprite's position
+    ctx.translate(
+      sprite.x + sprite.width / 2,
+      sprite.y + sprite.height /2
+    );
+    //Set the sprite's `rotation` and `alpha`
+    ctx.rotate(sprite.rotation);
+    ctx.globalAlpha = sprite.alpha;
+    //Use the sprite's own `render` method to draw the sprite
+    sprite.render(ctx);
+    ctx.restore();
+  });
+}
+
+//A `random` helper function
+function random(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+</script>
+</body>

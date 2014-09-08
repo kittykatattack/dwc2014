@@ -1,0 +1,183 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Basic WebAudio API sound sprite</title>
+
+<p>Press 1 to play the sound</p>
+
+<script>
+
+  //Define the audio context
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+  var actx = new AudioContext();
+
+  //Create the sound
+  var shoot = makeSound("sounds/shoot.wav", actx, soundLoadHandler);
+
+  //An optional callback that runs when the sound is loaded
+  function soundLoadHandler() {
+    console.log("sound loaded");
+  }
+
+  //A keyboard event listener that plays the sound when
+  //the `1` key is pressed is pressed
+  window.addEventListener("keydown", function(event) {
+    if(event.keyCode === 49) {
+      //Play the sound
+      shoot.play();
+    }
+  }, false);
+
+  /*
+  #makeSound
+  `makeSound` creates and returns and WebAudio sound sprite. It's
+  After the sound is loaded you can access and use it like this:
+
+      var anySound = g.sound("anySound.wav", audioContext, optionalLoadHandler);
+      anySound.loop = true;
+      anySound.pan = 0.8;
+      anySound.volume = 0.5;
+      anySound.play();
+      anySound.pause();
+      anySound.playFrom(second);
+      anySound.restart();
+
+  */
+
+  function makeSound(source, actx, loadHandler) {
+    var o = {};
+    //Set the default properties.
+    o.volumeNode = actx.createGain();
+    o.panNode = actx.createPanner();
+    o.panNode.panningModel = "equalpower";
+    o.soundNode = undefined;
+    o.buffer = undefined;
+    o.source = undefined;
+    o.loop = false;
+    o.isPlaying = false;
+    //The function that should run when the sound is loaded.
+    o.loadHandler = undefined;
+    //Values for the `pan` and `volume` getters/setters.
+    o.panValue = 0;
+    o.volumeValue = 1;
+    //Values to help track and set the start and pause times.
+    o.startTime = 0;
+    o.startOffset = 0;
+    //The sound object's methods.
+    o.play = function() {
+      //Set the start time (it will be `0` when the sound
+      //first starts.
+      o.startTime = actx.currentTime;
+      //Create a sound node.
+      o.soundNode = actx.createBufferSource();
+      //Set the sound node's buffer property to the loaded sound.
+      o.soundNode.buffer = o.buffer;
+      //Connect the sound to the pan, connect the pan to the
+      //volume, and connect the volume to the destination.
+      o.soundNode.connect(o.panNode);
+      o.panNode.connect(o.volumeNode);
+      o.volumeNode.connect(actx.destination);
+      //Will the sound loop? This can be `true` or `false`.
+      o.soundNode.loop = o.loop;
+      //Finally, use the `start` method to play the sound.
+      //The start time will either be `0`,
+      //or a later time if the sound was paused.
+      o.soundNode.start(
+        0, o.startOffset % o.buffer.duration
+      );
+      //Set `isPlaying` to `true` to help control the
+      //`pause` and `restart` methods.
+      o.isPlaying = true;
+    };
+    o.pause = function() {
+      //Pause the sound if it's playing, and calculate the
+      //`startOffset` to save the current position.
+      if (o.isPlaying) {
+        o.soundNode.stop(0);
+        o.startOffset += actx.currentTime - o.startTime;
+        o.isPlaying = false;
+      }
+    };
+    o.restart = function() {
+      //Stop the sound if it's playing, reset the start and offset times,
+      //then call the `play` method again.
+      if (o.isPlaying) {
+        o.soundNode.stop(0);
+      }
+      o.startOffset = 0;
+      o.play();
+    };
+    o.playFrom = function(value) {
+      if (o.isPlaying) {
+        o.soundNode.stop(0);
+      }
+      o.startOffset = value;
+      o.play();
+    };
+    //Volume and pan getters/setters.
+    Object.defineProperties(o, {
+      volume: {
+        get: function() {
+          return o.volumeValue;
+        },
+        set: function(value) {
+          o.volumeNode.gain.value = value;
+          o.volumeValue = value;
+        },
+        enumerable: true, configurable: true
+      },
+      pan: {
+        get: function() {
+          return o.panValue;
+        },
+        set: function(value) {
+          //Panner objects accept x, y and z coordinates for 3D
+          //sound. However, because we're only doing 2D left/right
+          //panning we're only interested in the x coordinate,
+          //the first one. However, for a natural effect, the z
+          //value also has to be set proportionately.
+          var x = value,
+              y = 0,
+              z = 1 - Math.abs(x);
+          o.panNode.setPosition(x, y, z);
+          o.panValue = value;
+        },
+        enumerable: true, configurable: true
+      }
+    });
+    //The `load` method. It will call the `loadHandler` passed
+    //that was passed as an argument when the sound has loaded.
+    o.load = function() {
+      var xhr = new XMLHttpRequest();
+      //Use xhr to load the sound file.
+      xhr.open("GET", source, true);
+      xhr.responseType = "arraybuffer";
+      xhr.addEventListener("load", function() {
+        //Decode the sound and store a reference to the buffer.
+        actx.decodeAudioData(
+          xhr.response,
+          function(buffer) {
+            o.buffer = buffer;
+            o.hasLoaded = true;
+            //This next bit is optional, but important.
+            //If you have a load manager in your game, call it here so that
+            //the sound is registered as having loaded.
+            if (loadHandler) {
+              loadHandler();
+            }
+          },
+          //Throw an error if the sound can't be decoded.
+          function(error) {
+            throw new Error("Audio could not be decoded: " + error);
+          }
+        );
+      });
+      //Send the request to load the file.
+      xhr.send();
+    };
+    //Load the sound.
+    o.load();
+    //Return the sound object.
+    return o;
+  };
+
+  </script>
