@@ -6,8 +6,8 @@
 
 //Make the canvas
 var canvas = document.createElement("canvas");
-canvas.setAttribute("width", "512");
-canvas.setAttribute("height", "512");
+canvas.width = 512;
+canvas.height = 512;
 canvas.style.border = "1px dashed black";
 document.body.appendChild(canvas);
 var ctx = canvas.getContext("2d");
@@ -237,27 +237,6 @@ function rectangleCollision(r1, r2, bounce) {
   //Return the collision string. it will be either "top", "right",
   //"bottom", or "left" depening on which side of r1 is touching r2.
   return collision;
-}
-
-//This will return true if there's a collision on both the x and y axis
-function hitTestRectangle(r1, r2) {
-  //Find the half-width values and center x/y points of two rectangles
-  r1.halfWidth = r1.width / 2;
-  r1.halfHeight = r1.height / 2;
-  r1.centerX = r1.x + r1.halfWidth;
-  r1.centerY = r1.y + r1.halfHeight;
-
-  r2.halfWidth = r2.width / 2;
-  r2.halfHeight = r2.height / 2;
-  r2.centerX = r2.x + r2.halfWidth;
-  r2.centerY = r2.y + r2.halfHeight;
-
-  //Hit will be `true` if the rectangles overlap
-  var hit =
-    Math.abs(r1.centerX - r2.centerX) < r1.halfWidth + r2.halfWidth
-    && Math.abs(r1.centerY - r2.centerY) < r1.halfHeight + r2.halfHeight;
-
-  return hit;
 }
 
 //The renderer

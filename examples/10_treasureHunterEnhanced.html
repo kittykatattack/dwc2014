@@ -118,7 +118,6 @@ function setup() {
   //Position the health bar
   healthBar.x = g.canvas.width - 148;
   healthBar.y = 16;
-
   //Add the health bar to the `gameScene`
   gameScene.addChild(healthBar);
 
@@ -134,7 +133,12 @@ function setup() {
   gameOverScene.visible = false;
 
   //Assign the player's keyboard controllers
+  //arguments: thingToControl, speed, up, right, down, left
+  g.fourKeyController(player, 5, 38, 39, 40, 37);
 
+  //Or, if you want more control, you can assign the keys
+  //the longer way:
+  /*
   //Left arrow key `press` method
   g.key.leftArrow.press = function() {
     //Change the player's velocity when the key is pressed
@@ -177,6 +181,7 @@ function setup() {
       player.vy = 0;
     }
   };
+  */
 
   //set the game state to `play`
   g.state = play;

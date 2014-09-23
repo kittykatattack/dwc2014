@@ -141,7 +141,10 @@ function setup() {
   gameOverScene.visible = false;
 
   //Assign the player's keyboard controllers
+  //arguments: thingToControl, speed, up, right, down, left
+  g.fourKeyController(player, 5, 38, 39, 40, 37);
 
+  /*
   //Assign key `press` methods
   g.key.leftArrow.press = function() {
     //Change the player's velocity when the key is pressed
@@ -183,6 +186,7 @@ function setup() {
       player.vy = 0;
     }
   };
+  */
 
   //set the game state to `play`
   g.state = play;

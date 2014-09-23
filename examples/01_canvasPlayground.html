@@ -6,8 +6,8 @@
 
 /* Create the canvas */
 var canvas = document.createElement("canvas");
-canvas.setAttribute("width", "512");
-canvas.setAttribute("height", "512");
+canvas.width = 512;
+canvas.height = 512;
 canvas.style.border = "1px dashed black";
 document.body.appendChild(canvas);
 var ctx = canvas.getContext("2d");
